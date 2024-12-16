@@ -1,34 +1,30 @@
 import React from 'react';
-import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, NavLink } from 'react-router-dom'; // Use NavLink instead of Link
 import Home from './pages/Home';
 import About from './pages/About';
 import Heatmap from './pages/Heatmap';
 import Graph from './pages/Graph';
 
-
-// Internal styles
 const styles = {
   container: {
     fontFamily: 'Arial, sans-serif',
     maxWidth: '100%',
     margin: '0 auto',
-    backgroundColor: '#f0f0f0',
-    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+    minHeight: '100vh',
   },
   header: {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#fff',
-    borderBottom: '1px solid #ddd',
-    borderRadius: '8px 8px 0 0',
-    padding: '0 50px', // Adjusted margin for smaller space
-
+    padding: '0 50px',
+    backgroundColor: 'transparent', // Remove background
+    borderBottom: '2px solid #ccc', // Add this line for the bottom border
   },
   logoImg: {
-    height: '150px', 
+    height: '150px',
     margin: '0 50px',
     width: '150px',
+    cursor: 'pointer', // Add pointer cursor for better UX
   },
   navigation: {
     flex: '1',
@@ -37,67 +33,95 @@ const styles = {
   navList: {
     listStyle: 'none',
     padding: 0,
-    margin: 0,
+    margin: '0', // Added left margin
     display: 'flex',
-    justifyContent: 'flex-end',
+    justifyContent: 'flex-end', // Align links to the left
     alignItems: 'center',
-    fontSize: '20px', // Navigation link font size
+    gap: '50px', // Add space between links
   },
   navLink: {
     textDecoration: 'none',
-    color: '#333',
+    color: 'black',
     fontWeight: 'bold',
-    margin: '0 18px', // Adjusted margin for smaller space
-    padding: '5px 10px', // Adjusted padding for smaller space
-    fontSize: '25px', // Reduced font size
+    margin: '0 18px',
+    padding: '5px 10px',
+    fontSize: '30px',
     transition: 'color 0.3s ease',
+    position: 'relative', // Required for underline effect
+    display: 'inline-block',
+  },
+  activeNavLink: {
+    color: '#c44d58', // Active link color
   },
   main: {
     padding: '20px',
-    backgroundColor: '#fff',
-    borderRadius: '0 0 8px 8px',
-    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
+    backgroundColor: 'transparent',
+    boxShadow: 'none',
   },
 };
-
 
 function App() {
   return (
     <Router>
-      <div style={styles.container}>
-        {/* Header with logo and navigation links */}
-        <header style={styles.header}>
-          <div className="logo">
-            {/* Replace with your logo image or text */}
-            <img src="assets/Logo.png" alt="Your Logo" style={styles.logoImg} />
-          </div>
-          <nav style={styles.navigation}>
-            <ul style={styles.navList}>
-              <li>
-                <Link to="/" style={styles.navLink}>Home</Link>
-              </li>
-              <li>
-                <Link to="/about" style={styles.navLink}>About</Link>
-              </li>
-              <li>
-                <Link to="/heatmap" style={styles.navLink}>Heatmap</Link>
-              </li>
-              <li>
-                <Link to="/graph" style={styles.navLink}>Graph</Link>
-              </li>
-            </ul>
-          </nav>
-        </header>
+      <div className="gradient">
+        <div style={styles.container}>
+          <header style={styles.header}>
+            <div className="logo">
+              <NavLink to="/">
+                <img src="assets/Logo.png" alt="Your Logo" style={styles.logoImg} />
+              </NavLink>
+            </div>
+            <nav style={styles.navigation}>
+              <ul style={styles.navList}>
+                <li>
+                  <NavLink 
+                    to="/" 
+                    style={({ isActive }) => 
+                      isActive ? { ...styles.navLink, ...styles.activeNavLink } : styles.navLink
+                    }>
+                    Home
+                  </NavLink>
+                </li>
+                <li>
+                  <NavLink 
+                    to="/heatmap" 
+                    style={({ isActive }) => 
+                      isActive ? { ...styles.navLink, ...styles.activeNavLink } : styles.navLink
+                    }>
+                    Heatmap
+                  </NavLink>
+                </li>
+                <li>
+                  <NavLink 
+                    to="/graph" 
+                    style={({ isActive }) => 
+                      isActive ? { ...styles.navLink, ...styles.activeNavLink } : styles.navLink
+                    }>
+                    Graph
+                  </NavLink>
+                </li>
+                <li>
+                  <NavLink 
+                    to="/about" 
+                    style={({ isActive }) => 
+                      isActive ? { ...styles.navLink, ...styles.activeNavLink } : styles.navLink
+                    }>
+                    About Us
+                  </NavLink>
+                </li>
+              </ul>
+            </nav>
+          </header>
 
-        {/* Main content area */}
-        <main style={styles.main}>
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/heatmap" element={<Heatmap />} />
-            <Route path="/graph" element={<Graph />} />
-          </Routes>
-        </main>
+          <main style={styles.main}>
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/heatmap" element={<Heatmap />} />
+              <Route path="/graph" element={<Graph />} />
+            </Routes>
+          </main>
+        </div>
       </div>
     </Router>
   );

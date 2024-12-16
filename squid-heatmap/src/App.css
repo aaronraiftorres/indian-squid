@@ -45,6 +45,43 @@ body {
   background-color: #f5f5f5; /* Background color on hover */
 }
 
+.navigation a {
+  text-decoration: none;
+  color: black; /* Keep font color black */
+  font-weight: bold;
+  padding: 10px;
+  border-radius: 4px; /* Subtle rounded corners */
+  position: relative; /* Required for underline effect */
+  display: inline-block; /* For proper spacing and alignment */
+  transition: color 0.3s ease-in-out; /* Smooth text color transition */
+}
+
+/* Add Underline Animation */
+.navigation a::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  width: 0%;
+  background-color: black;
+  transition: width 0.3s ease-in-out; /* Smooth underline growth */
+}
+
+/* Hover Effect */
+.navigation a:hover {
+  color: #007BFF; /* Change text color on hover */
+}
+
+.navigation a:hover::after {
+  width: 100%; /* Expand the underline */
+}
+
+/* Optional Active Link Style */
+.navigation a.active {
+  color: #007BFF;
+}
+
 /* Main content styles */
 main {
   padding: 1rem 2rem;
