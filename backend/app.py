@@ -38,7 +38,9 @@ dataset.columns = dataset.columns.str.strip()  # Remove extra spaces
 for col in ['squid_abundance_per_kgs', 'ssh', 'sst', 'chl']:
     dataset[col] = pd.to_numeric(dataset[col], errors='coerce')
 
-dataset = dataset.interpolate(method='linear').fillna(method='ffill').fillna(method='bfill')
+# Update interpolation method as per previous warnings
+dataset = dataset.infer_objects(copy=False)
+dataset = dataset.interpolate(method='linear').ffill().bfill()
 
 # Convert date and create unique hotspot IDs
 dataset['date'] = pd.to_datetime(dataset['date'])
@@ -92,6 +94,7 @@ label_encoder.fit(hotspot_ids)
 hotspot_ids_encoded = label_encoder.transform(hotspot_ids)
 
 model = load_model(model_path)
+hotspot_metadata = pd.read_csv(metadata_path)
 
 def generate_predictions(hotspot_id, year, month):
     sequence_length = 10
@@ -123,15 +126,36 @@ def generate_predictions(hotspot_id, year, month):
 
     return future_predictions.flatten()
 
-hotspot_metadata = pd.read_csv(metadata_path)
-
-def create_heatmap_data(month_idx, predictions):
+def create_heatmap_data(month_idx, predictions_dict):
     heatmap_data = []
-    for i, hotspot_id in enumerate(hotspot_metadata['hotspot_id']):
-        lat = hotspot_metadata[hotspot_metadata['hotspot_id'] == hotspot_id]['latitude'].values[0]
-        lon = hotspot_metadata[hotspot_metadata['hotspot_id'] == hotspot_id]['longitude'].values[0]
-        heatmap_data.append([lat, lon, float(predictions[month_idx])])
-    return heatmap_data
+    hotspot_details = []
+    for hotspot_id, predictions in predictions_dict.items():
+        if month_idx < len(predictions):
+            try:
+                matching_hotspots = hotspot_metadata[hotspot_metadata['hotspot_id'] == hotspot_id]
+                if not matching_hotspots.empty:
+                    lat = matching_hotspots['latitude'].values[0]
+                    lon = matching_hotspots['longitude'].values[0]
+                    value = float(predictions[month_idx])
+                    
+                    # Collect additional details
+                    details = {
+                        'hotspot_id': hotspot_id,
+                        'latitude': lat,
+                        'longitude': lon,
+                        'abundance_value': value
+                    }
+                    
+                    # Add any additional metadata from the CSV
+                    for col in matching_hotspots.columns:
+                        if col not in ['hotspot_id', 'latitude', 'longitude']:
+                            details[col] = matching_hotspots[col].values[0]
+                    
+                    heatmap_data.append([lat, lon, value])
+                    hotspot_details.append(details)
+            except Exception as e:
+                print(f"Error with hotspot {hotspot_id}: {e}")
+    return heatmap_data, hotspot_details
 
 def generate_graphs(predictions_dict, end_date):
     future_predictions_dict = {}
@@ -185,12 +209,108 @@ def predict():
         predictions_dict[hotspot_id] = generate_predictions(hotspot_id, year, month)
 
     heatmaps = []
-    for hotspot_id, predictions in predictions_dict.items():
-        for month_idx in range(len(predictions)):
-            heatmap_data = create_heatmap_data(month_idx, predictions)
-            m = folium.Map(location=[(latitude_min + latitude_max) / 2, (longitude_min + longitude_max) / 2], zoom_start=10)
-            HeatMap(heatmap_data).add_to(m)
-            heatmaps.append(m._repr_html_())
+    detailed_hotspot_info = {}
+    for month_idx in range(12):  # Assuming we want to show 12 months
+        # Check if we have predictions for this month
+        has_predictions = False
+        for hotspot_id, predictions in predictions_dict.items():
+            if month_idx < len(predictions):
+                has_predictions = True
+                break
+        
+        if not has_predictions:
+            continue
+            
+        heatmap_data, hotspot_details = create_heatmap_data(month_idx, predictions_dict)
+        if not heatmap_data:
+            continue
+            
+        m = folium.Map(location=[(latitude_min + latitude_max) / 2, (longitude_min + longitude_max) / 2], zoom_start=10)
+        
+        # Add heatmap layer
+        HeatMap(heatmap_data).add_to(m)
+        
+        # Add markers with abundance values and additional details
+        for lat, lon, value in heatmap_data:
+            # Find corresponding hotspot details
+            hotspot_info = next((details for details in hotspot_details 
+                                 if details['latitude'] == lat and details['longitude'] == lon), None)
+            
+            if hotspot_info:
+                # Create a detailed popup with all available information
+                popup_content = "<div style='font-size: 12px;'>"
+                for key, val in hotspot_info.items():
+                    popup_content += f"<b>{key.replace('_', ' ').title()}:</b> {val}<br>"
+                popup_content += "</div>"
+                
+                # Create marker with popup
+                folium.Marker(
+                    location=[lat, lon],
+                    popup=folium.Popup(popup_content, max_width=300),
+                    tooltip=f"Hotspot {hotspot_info['hotspot_id']}",
+                    icon=folium.DivIcon(
+                        icon_size=(120, 36),
+                        icon_anchor=(0, 0),
+                        html=f'<div class="zoom-marker" style="display: none; font-size: 10pt; background-color: rgba(255, 255, 255, 0.7); '
+                             f'border-radius: 4px; padding: 2px; width: auto; text-align: center;">'
+                             f'Hotspot {hotspot_info["hotspot_id"]}: {value:.2f} kg</div>'
+                    )
+                ).add_to(m)
+        
+        # Add JavaScript to control marker visibility on zoom (same as before)
+        zoom_script = """
+        <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var map = document.querySelector('.folium-map');
+            var markers = document.querySelectorAll('.zoom-marker');
+            
+            function toggleMarkers() {
+                if (map.__zoom >= 11) { // Adjust this zoom level as needed
+                    markers.forEach(function(marker) {
+                        marker.style.display = 'block';
+                    });
+                } else {
+                    markers.forEach(function(marker) {
+                        marker.style.display = 'none';
+                    });
+                }
+            }
+            
+            // Use MutationObserver to handle dynamic map creation
+            var observer = new MutationObserver(function(mutations) {
+                mutations.forEach(function(mutation) {
+                    if (mutation.type === 'childList') {
+                        var mapElement = document.querySelector('.folium-map');
+                        if (mapElement) {
+                            mapElement.addEventListener('zoom', toggleMarkers);
+                            toggleMarkers();
+                        }
+                    }
+                });
+            });
+
+            observer.observe(document.body, { childList: true, subtree: true });
+        });
+        </script>
+        """
+        m.get_root().html.add_child(folium.Element(zoom_script))
+        
+        # Add month information to the map
+        month_date = end_date - pd.DateOffset(months=(12 - month_idx - 1))
+        month_title = month_date.strftime('%b %Y')
+        
+        title_html = f'''
+            <div style="position: fixed; top: 10px; left: 50px; width: 200px; height: 30px; 
+                       background-color: white; border-radius: 5px; z-index: 900;">
+                <h4 style="text-align: center; margin: 5px;">{month_title}</h4>
+            </div>
+        '''
+        m.get_root().html.add_child(folium.Element(title_html))
+        
+        heatmaps.append(m._repr_html_())
+        
+        # Store detailed hotspot information for each month
+        detailed_hotspot_info[month_title] = hotspot_details
 
     future_predictions_dict = generate_graphs(predictions_dict, end_date)
     graphs = {}
@@ -217,7 +337,11 @@ def predict():
         graphs[f'{lat},{lon}'] = f'data:image/png;base64,{graph_url}'
         plt.close()
 
-    return jsonify(heatmaps=heatmaps, graphs=graphs)
+    return jsonify(
+        heatmaps=heatmaps, 
+        graphs=graphs, 
+        hotspot_details=detailed_hotspot_info
+    )
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0")

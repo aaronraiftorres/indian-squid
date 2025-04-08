@@ -50,6 +50,7 @@ const styles = {
   },
   result: {
     marginTop: '20px',
+    position: 'relative',
   },
   mapHeader: {
     marginBottom: '10px',
@@ -57,6 +58,7 @@ const styles = {
   mapContainer: {
     height: '710px',
     border: 'none',
+    position: 'relative',
   },
   loadingScreen: {
     position: 'fixed',
@@ -120,10 +122,61 @@ const styles = {
     cursor: 'pointer',
     transition: 'background-color 0.3s ease',
     boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-    '&:hover': {
-      backgroundColor: '#003f80',
-    },
   },
+  legend: {
+    position: 'absolute',
+    bottom: '20px',
+    right: '20px',
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    padding: '15px',
+    borderRadius: '8px',
+    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+    zIndex: 1000,
+  },
+  legendItem: {
+    display: 'flex',
+    alignItems: 'center',
+    marginBottom: '10px',
+  },
+  legendColor: {
+    width: '20px',
+    height: '20px',
+    marginRight: '10px',
+    border: '1px solid rgba(0,0,0,0.2)',
+  },
+};
+
+const AbundanceLegend = () => {
+  return (
+    <div style={styles.legend}>
+      <h4 style={{ marginBottom: '10px', textAlign: 'center' }}>Squid Abundance Legend</h4>
+      <div style={styles.legendItem}>
+        <div style={{
+          ...styles.legendColor,
+          backgroundColor: 'red'
+        }}></div>
+        <span>High Abundance</span>
+      </div>
+      <div style={styles.legendItem}>
+        <div style={{
+          ...styles.legendColor,
+          backgroundColor: 'yellow',
+        }}></div>
+        <span>Medium Abundance</span>
+      </div>
+      <div style={styles.legendItem}>
+        <div style={{ ...styles.legendColor, backgroundColor: 'yellowgreen' }}></div>
+        <span>Slight Abundance</span>
+      </div>
+      <div style={styles.legendItem}>
+        <div style={{
+          ...styles.legendColor,
+          backgroundColor: 'blue'
+        }}></div>
+        <span>Low Abundance</span>
+      </div>
+    </div>
+  );
 };
 
 const Heatmap = () => {
@@ -234,6 +287,7 @@ const Heatmap = () => {
         <div style={styles.result}>
           <h3>Generated Heatmap for {monthNames[selectedMonth - 1]} {selectedYear}</h3>
           <div dangerouslySetInnerHTML={{ __html: heatmapHtml }} />
+          <AbundanceLegend />
         </div>
       )}
 
@@ -246,6 +300,7 @@ const Heatmap = () => {
               style={{ width: '100%', height: '100%' }}
               title="Default Map"
             />
+            <AbundanceLegend />
           </div>
         </div>
       )}
