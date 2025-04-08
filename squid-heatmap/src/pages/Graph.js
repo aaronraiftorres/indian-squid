@@ -139,9 +139,6 @@ const styles = {
   }
 };
 
-const API_URL = process.env.REACT_APP_API_URL;
-
-
 function App() {
   const [year, setYear] = useState('2024');
   const [month, setMonth] = useState('1');
@@ -162,7 +159,7 @@ function App() {
     setShowModal(false);
     setLoading(true);
     try {
-      const response = await axios.post(`${API_URL}/predict`, { year, month });
+      const response = await axios.post('http://localhost:5000/predict', { year, month });
       setGraphs(response.data.graphs);
     } catch (error) {
       console.error('Error fetching predictions:', error);

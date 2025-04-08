@@ -146,9 +146,6 @@ const styles = {
   },
 };
 
-const API_URL = process.env.REACT_APP_API_URL;
-
-
 const AbundanceLegend = () => {
   return (
     <div style={styles.legend}>
@@ -203,14 +200,13 @@ const Heatmap = () => {
     setShowModal(false);
     setLoading(true);
     try {
-      const response = await fetch(`${API_URL}/predict`, {
+      const response = await fetch('http://localhost:5000/predict', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ year: selectedYear, month: selectedMonth }),
       });
-      
 
       if (!response.ok) {
         throw new Error('Failed to fetch heatmap data');

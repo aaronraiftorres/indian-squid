@@ -161,7 +161,7 @@ def generate_graphs(predictions_dict, end_date):
     future_predictions_dict = {}
     final_values = {}
 
-    for hotspot_id in range(1, 4):
+    for hotspot_id in range(1, 20):
         try:
             matching_hotspots = hotspot_metadata[hotspot_metadata['hotspot_id'] == hotspot_id]
             if not matching_hotspots.empty:
@@ -210,7 +210,7 @@ def predict():
 
     heatmaps = []
     detailed_hotspot_info = {}
-    for month_idx in range(3):  # Assuming we want to show 12 months
+    for month_idx in range(12):  # Assuming we want to show 12 months
         # Check if we have predictions for this month
         has_predictions = False
         for hotspot_id, predictions in predictions_dict.items():
