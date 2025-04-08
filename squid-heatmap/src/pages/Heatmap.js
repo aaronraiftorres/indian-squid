@@ -200,13 +200,14 @@ const Heatmap = () => {
     setShowModal(false);
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:5000/predict', {
+      const response = await fetch(`${API_URL}/predict`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ year: selectedYear, month: selectedMonth }),
       });
+      
 
       if (!response.ok) {
         throw new Error('Failed to fetch heatmap data');
