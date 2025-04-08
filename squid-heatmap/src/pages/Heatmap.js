@@ -146,6 +146,9 @@ const styles = {
   },
 };
 
+const API_URL = process.env.REACT_APP_API_URL;
+
+
 const AbundanceLegend = () => {
   return (
     <div style={styles.legend}>
