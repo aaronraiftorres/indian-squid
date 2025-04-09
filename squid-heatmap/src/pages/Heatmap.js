@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-
+import axios from 'axios';
 
 // Internal styles
 const styles = {
@@ -227,7 +227,7 @@ const Heatmap = () => {
       // Replace your axios call with:
       const response = await axios.post(
         `${process.env.REACT_APP_API_URL}/predict`,
-        { year, month },
+        { year: selectedYear, month: selectedMonth },
         {
           timeout: 30000, // 30 seconds timeout
           headers: {
