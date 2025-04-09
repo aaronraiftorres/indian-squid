@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+
 // Internal styles
 const styles = {
   container: {
@@ -186,48 +186,17 @@ const Heatmap = () => {
   const [mapVisible, setMapVisible] = useState(true);
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
-  const [hotspotDetails, setHotspotDetails] = useState(null);
-  const [error, setError] = useState(null);
 
   const monthNames = [
     'January', 'February', 'March', 'April', 'May', 'June',
     'July', 'August', 'September', 'October', 'November', 'December'
   ];
 
-  const handlePredict = () => {
+  const handlePredict = async () => {
     setShowModal(true);
-    setError(null);
   };
 
-  const handleModalContinue = async () => {
-    setShowModal(false);
-    setLoading(true);
-    try {
-      const response = await axios.post(
-        `${process.env.REACT_APP_API_URL}/predict`,
-        { year: selectedYear, month: selectedMonth },
-        {
-          timeout: 30000,
-          headers: {
-            'Content-Type': 'application/json',
-          }
-        }
-      );
-
-      if (response.data.heatmaps?.length > 0) {
-        setHeatmapHtml(response.data.heatmaps[0]);
-        setMapVisible(false);
-      }
-      if (response.data.hotspot_details) {
-        setHotspotDetails(response.data.hotspot_details);
-      }
-    } catch (error) {
-      console.error('Error:', error);
-      setError('Prediction failed. Please try again later.');
-    } finally {
-      setLoading(false);
-    }
-  };
+ z
 
   return (
     <div style={styles.container}>
@@ -237,7 +206,6 @@ const Heatmap = () => {
           <div>Predicting...</div>
         </div>
       )}
-
       {showModal && (
         <div style={styles.modal}>
           <div style={styles.modalContent}>
@@ -248,32 +216,12 @@ const Heatmap = () => {
                 The longer the date you want to predict, the accuracy becomes poorer.
               </p>
             </div>
-            <button 
-              style={styles.modalButton} 
-              onClick={handleModalContinue}
-              disabled={loading}
-            >
-              {loading ? 'Processing...' : 'Continue'}
-            </button>
+            <button style={styles.modalButton} onClick={handleModalContinue}>Continue</button>
           </div>
         </div>
       )}
-
-      {error && (
-        <div style={{ 
-          color: 'red', 
-          padding: '10px', 
-          margin: '10px 0',
-          backgroundColor: '#ffeeee',
-          borderRadius: '4px'
-        }}>
-          {error}
-        </div>
-      )}
-
       <h1>Indian Squid Heatmap Analysis</h1>
       <p>Select a year and month to predict the abundance of squid in various hotspots. This tool helps researchers and fishery managers anticipate squid population trends, aiding in sustainable management and conservation efforts.</p>
-
       <div style={styles.controls}>
         <div style={styles.selectContainer}>
           <label htmlFor="year" style={styles.label}>Select Year:</label>
