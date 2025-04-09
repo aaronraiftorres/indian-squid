@@ -196,33 +196,36 @@ const Heatmap = () => {
     setShowModal(true);
   };
 
-  const handleModalContinue = async () => {
-    setShowModal(false);
-    setLoading(true);
-    try {
-      const response = await fetch('http://localhost:5000/predict', {
-        method: 'POST',
+  // Replace your fetch call with this axios implementation
+const handleModalContinue = async () => {
+  setShowModal(false);
+  setLoading(true);
+  try {
+    const response = await axios.post(
+      `${process.env.REACT_APP_API_URL}/predict`,
+      { year: selectedYear, month: selectedMonth },
+      {
+        timeout: 30000, // 30 second timeout
         headers: {
           'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ year: selectedYear, month: selectedMonth }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch heatmap data');
+        }
       }
+    );
 
-      const data = await response.json();
-      console.log('Received heatmap data:', data);
-
-      setHeatmapHtml(data.heatmaps[0]);
+    if (response.data.heatmaps && response.data.heatmaps.length > 0) {
+      setHeatmapHtml(response.data.heatmaps[0]);
       setMapVisible(false);
-    } catch (error) {
-      console.error('Error:', error);
-    } finally {
-      setLoading(false);
     }
-  };
+    if (response.data.hotspot_details) {
+      setHotspotDetails(response.data.hotspot_details);
+    }
+  } catch (error) {
+    console.error('Error:', error);
+    alert('Prediction failed. Please try again later.');
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div style={styles.container}>

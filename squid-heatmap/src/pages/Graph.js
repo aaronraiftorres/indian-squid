@@ -159,10 +159,25 @@ function App() {
     setShowModal(false);
     setLoading(true);
     try {
-      const response = await axios.post('http://localhost:5000/predict', { year, month });
-      setGraphs(response.data.graphs);
+      const response = await axios.post(
+        `${process.env.REACT_APP_API_URL}/predict`,
+        { year, month },
+        {
+          timeout: 45000, // 45 second timeout for graphs
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        }
+      );
+  
+      if (response.data.graphs) {
+        setGraphs(response.data.graphs);
+      } else {
+        throw new Error('No graph data received');
+      }
     } catch (error) {
       console.error('Error fetching predictions:', error);
+      alert(`Prediction failed: ${error.message}. Please try again.`);
     } finally {
       setLoading(false);
     }
