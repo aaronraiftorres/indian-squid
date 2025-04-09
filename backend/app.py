@@ -214,6 +214,8 @@ def generate_graphs(predictions_dict, end_date):
 
 
 
+
+
 @app.route('/predict', methods=['POST'])
 def predict():
     data = request.json
