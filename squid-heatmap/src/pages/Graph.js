@@ -159,29 +159,10 @@ function App() {
     setShowModal(false);
     setLoading(true);
     try {
-      const response = await axios.post(
-        `${process.env.REACT_APP_API_URL}/predict`, 
-        { year, month },
-        {
-          timeout: 30000,
-          headers: {
-            'Content-Type': 'application/json',
-          }
-        }
-      );
+      const response = await axios.post('http://localhost:5000/predict', { year, month });
       setGraphs(response.data.graphs);
     } catch (error) {
       console.error('Error fetching predictions:', error);
-      if (error.response) {
-        // Server responded with a status other than 200 range
-        alert(`Server error: ${error.response.status}`);
-      } else if (error.request) {
-        // Request was made but no response received
-        alert('No response from server. Please try again later.');
-      } else {
-        // Something happened in setting up the request
-        alert('Error setting up request: ' + error.message);
-      }
     } finally {
       setLoading(false);
     }
