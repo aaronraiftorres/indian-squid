@@ -17,7 +17,7 @@ import base64
 app = Flask(__name__)
 CORS(app, resources={
     r"/predict": {
-        "origins": ["https://indian-squid.vercel.app"],
+        "origins": ["https://indian-squid.vercel.app", "http://localhost:3000"],
         "methods": ["OPTIONS", "POST"],
         "allow_headers": ["Content-Type"]
     }
