@@ -159,7 +159,7 @@ function App() {
     setShowModal(false);
     setLoading(true);
     try {
-      const response = await axios.post('http://localhost:5000/predict', { year, month });
+      const response = await axios.post(`${process.env.REACT_APP_API_BASE}/predict`, { year, month });
       setGraphs(response.data.graphs);
     } catch (error) {
       console.error('Error fetching predictions:', error);
