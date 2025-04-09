@@ -15,7 +15,21 @@ import io
 import base64
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={
+    r"/predict": {
+        "origins": ["https://indian-squid.vercel.app", "http://localhost:3000"],
+        "methods": ["OPTIONS", "POST"],
+        "allow_headers": ["Content-Type"]
+    }
+})
+
+@app.after_request
+def after_request(response):
+    response.headers.add('Access-Control-Allow-Origin', 'https://indian-squid.vercel.app')
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+    response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+    response.headers.add('Access-Control-Max-Age', '86400')
+    return response
 
 # Paths
 base_path = os.path.dirname(os.path.abspath(__file__))
@@ -344,4 +358,4 @@ def predict():
     )
 
 if __name__ == '__main__':
-    app.run(host="0.0.0.0")
+    app.run(host="0.0.0.0" ,port=10000) 
