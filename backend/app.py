@@ -15,7 +15,22 @@ import io
 import base64
 
 app = Flask(__name__)
-CORS(app)
+# Configure CORS to allow requests from your Vercel frontend
+CORS(app, resources={
+    r"/predict": {
+        "origins": ["https://indian-squid.vercel.app", "http://localhost:3000"],
+        "methods": ["OPTIONS", "POST"],
+        "allow_headers": ["Content-Type"]
+    }
+})
+# Add this after_request handler for additional CORS headers
+@app.after_request
+def after_request(response):
+    response.headers.add('Access-Control-Allow-Origin', 'https://indian-squid.vercel.app')
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+    response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+    response.headers.add('Access-Control-Max-Age', '86400')
+    return response
 
 # Paths
 base_path = os.path.dirname(os.path.abspath(__file__))
@@ -197,14 +212,6 @@ def generate_graphs(predictions_dict, end_date):
 
     return future_predictions_dict
 
-
-@app.after_request
-def after_request(response):
-    response.headers.add('Access-Control-Allow-Origin', '*')
-    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
-    response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
-    response.headers.add('Access-Control-Max-Age', '86400')  # 24 hours
-    return response
 
 
 @app.route('/predict', methods=['POST'])

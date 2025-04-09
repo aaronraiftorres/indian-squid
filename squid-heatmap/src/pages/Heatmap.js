@@ -202,28 +202,32 @@ const Heatmap = () => {
   const handleModalContinue = async () => {
     setShowModal(false);
     setLoading(true);
+    setError(null);
+    
     try {
       const response = await axios.post(
         `${process.env.REACT_APP_API_URL}/predict`,
         { year: selectedYear, month: selectedMonth },
         {
-          timeout: 30000,
+          timeout: 180000, // 3 minutes timeout
           headers: {
             'Content-Type': 'application/json',
           }
         }
       );
-
-      if (response.data.heatmaps?.length > 0) {
-        setHeatmapHtml(response.data.heatmaps[0]);
+  
+      if (response.status === 200) {
+        if (response.data.error) {
+          throw new Error(response.data.error);
+        }
+        setHeatmapHtml(response.data.heatmaps?.[0]);
         setMapVisible(false);
-      }
-      if (response.data.hotspot_details) {
-        setHotspotDetails(response.data.hotspot_details);
+      } else {
+        throw new Error('Unexpected response from server');
       }
     } catch (error) {
-      console.error('Error:', error);
-      setError('Prediction failed. Please try again later.');
+      console.error('Prediction error:', error);
+      setError(error.response?.data?.error || error.message || 'Prediction failed');
     } finally {
       setLoading(false);
     }
