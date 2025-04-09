@@ -196,7 +196,33 @@ const Heatmap = () => {
     setShowModal(true);
   };
 
- z
+  const handleModalContinue = async () => {
+    setShowModal(false);
+    setLoading(true);
+    try {
+      const response = await fetch('http://localhost:5000/predict', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ year: selectedYear, month: selectedMonth }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch heatmap data');
+      }
+
+      const data = await response.json();
+      console.log('Received heatmap data:', data);
+
+      setHeatmapHtml(data.heatmaps[0]);
+      setMapVisible(false);
+    } catch (error) {
+      console.error('Error:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div style={styles.container}>
